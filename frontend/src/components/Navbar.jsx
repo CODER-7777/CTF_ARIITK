@@ -47,11 +47,13 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-md bg-gradient-to-br from-neon-blue to-neon-pink flex items-center justify-center">
-              <span className="text-xs font-black text-white">CTF</span>
-            </div>
-            <span className="text-lg font-black tracking-[0.15em] text-white group-hover:text-neon-blue transition-colors">
-              AERO<span className="text-neon-blue">PUNK</span>
+            <img 
+              src="/logo.png" 
+              alt="ARIITK Logo" 
+              className="w-10 h-10 object-contain group-hover:drop-shadow-[0_0_8px_rgba(0,245,255,0.5)] transition-all"
+            />
+            <span className="text-xl font-black tracking-[0.2em] text-white group-hover:text-neon-blue transition-colors">
+              ARI<span className="text-neon-blue">ITK</span>
             </span>
           </Link>
 

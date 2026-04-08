@@ -51,33 +51,60 @@ async function runSessionCommand(sessionId, command) {
   const remote = await callRuntime(`/sessions/${sessionId}/command`, 'POST', { command });
   if (remote) return remote;
 
-  // Local no-docker fallback: mock terminal output.
+  // Local no-docker fallback: robust mock terminal output.
   const trimmed = String(command || '').trim();
   if (!trimmed) return { output: '' };
-  if (trimmed === 'help') {
-    return { output: 'Commands: ls, pwd, whoami, cat <file>, help\n' };
+
+  // Split command into base and arguments
+  const parts = trimmed.split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  const args = parts.slice(1);
+
+  const currentLevel = getSession(sessionId)?.level || 1;
+
+  switch (cmd) {
+    case 'help':
+      return { output: 'Standard Bandit Commands: ls, pwd, whoami, cat, help, clear, cd\n' };
+
+    case 'clear':
+      return { output: '\x1Bc' }; // ANSI escape to clear terminal
+
+    case 'pwd':
+      return { output: `/home/bandit-user/level${currentLevel}\n` };
+
+    case 'whoami':
+      return { output: `bandit-level${currentLevel}\n` };
+
+    case 'ls':
+      // Handle ls flags (like -la, -l, -a) by just showing the same files for now
+      // but accepting the command without error.
+      return { output: 'total 24\ndrwxr-xr-x 2 bandit-user bandit-user 4096 Apr  8 22:00 .\ndrwxr-xr-x 3 root        root        4096 Apr  8 22:00 ..\n-rw-r--r-- 1 bandit-user bandit-user   82 Apr  8 22:00 notes.txt\n-rw-r--r-- 1 bandit-user bandit-user   68 Apr  8 22:00 README\n-r-------- 1 bandit-user bandit-user   42 Apr  8 22:00 token_hint.txt\n' };
+
+    case 'cat':
+      if (args.length === 0) return { output: 'cat: missing operand\n' };
+      const filename = args[0];
+      if (filename === 'README') {
+        return { output: 'Welcome agent. Enumerate files and read clues to recover the proof token.\n' };
+      }
+      if (filename === 'notes.txt') {
+        return { output: 'Hint: the proof token is not in this file. Try reading token_hint.txt.\n' };
+      }
+      if (filename === 'token_hint.txt') {
+        return { output: `bandit{level_${currentLevel}_proof_from_runtime}\n` };
+      }
+      return { output: `cat: ${filename}: No such file or directory\n` };
+
+    case 'cd':
+      return { output: 'Permission denied: Restricted shell. You cannot leave this directory.\n' };
+
+    case 'nano':
+    case 'vi':
+    case 'vim':
+      return { output: `${cmd}: command unavailable in hosted mock runtime. Use 'cat' to read files.\n` };
+
+    default:
+      return { output: `bash: ${cmd}: command not found\n` };
   }
-  if (trimmed === 'ls') return { output: 'README  notes.txt  token_hint.txt\n' };
-  if (trimmed === 'pwd') return { output: `/bandit/l${getSession(sessionId)?.level || 1}\n` };
-  if (trimmed === 'whoami') return { output: 'bandit-player\n' };
-  if (trimmed === 'cat README') {
-    return { output: 'Welcome agent. Enumerate files and read clues to recover the proof token.\n' };
-  }
-  if (trimmed === 'cat notes.txt') {
-    return { output: 'Hint: the proof token is not in this file. Try reading token_hint.txt.\n' };
-  }
-  if (trimmed === 'cat token_hint.txt') {
-    const level = getSession(sessionId)?.level || 1;
-    return { output: `bandit{level_${level}_proof_from_runtime}\n` };
-  }
-  if (trimmed.startsWith('cat ') && trimmed.includes('token')) {
-    const level = getSession(sessionId)?.level || 1;
-    return { output: `bandit{level_${level}_proof_from_runtime}\n` };
-  }
-  if (trimmed.startsWith('nano ')) {
-    return { output: 'nano: command unavailable in hosted mock runtime\n' };
-  }
-  return { output: `bash: ${trimmed}: command not found\n` };
 }
 
 async function checkHealth() {

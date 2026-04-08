@@ -60,6 +60,18 @@ function App() {
                 } 
               />
             </Routes>
+
+            {/* Footer */}
+            <footer className="py-12 border-t border-white/5 text-center">
+              <p className="text-xs text-gray-500 font-mono tracking-[0.3em] uppercase">
+                MADE BY <span className="text-neon-blue">MV</span> @ARIITK
+              </p>
+              <div className="mt-4 flex justify-center gap-4">
+                <div className="w-1.5 h-1.5 rounded-full bg-neon-blue/30 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-neon-pink/30 animate-pulse [animation-delay:200ms]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-neon-blue/30 animate-pulse [animation-delay:400ms]" />
+              </div>
+            </footer>
           </motion.div>
           <Toaster position="top-right" toastOptions={{
             style: {
