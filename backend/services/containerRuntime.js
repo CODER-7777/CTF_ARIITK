@@ -76,9 +76,16 @@ async function runSessionCommand(sessionId, command) {
       return { output: `bandit-level${currentLevel}\n` };
 
     case 'ls':
-      // Handle ls flags (like -la, -l, -a) by just showing the same files for now
-      // but accepting the command without error.
-      return { output: 'total 24\ndrwxr-xr-x 2 bandit-user bandit-user 4096 Apr  8 22:00 .\ndrwxr-xr-x 3 root        root        4096 Apr  8 22:00 ..\n-rw-r--r-- 1 bandit-user bandit-user   82 Apr  8 22:00 notes.txt\n-rw-r--r-- 1 bandit-user bandit-user   68 Apr  8 22:00 README\n-r-------- 1 bandit-user bandit-user   42 Apr  8 22:00 token_hint.txt\n' };
+      {
+        const files = {
+          1: '-r-------- 1 bandit-user bandit-user   42 Apr  8 22:00 permission_token.txt\n',
+          2: '-rw-r--r-- 1 bandit-user bandit-user   68 Apr  8 22:00 README\n-rw-r--r-- 1 bandit-user bandit-user   82 Apr  8 22:00 .hidden_token\n',
+          3: '-rw-r--r-- 1 bandit-user bandit-user  1024 Apr  8 22:00 access.log\n',
+          4: '-rw-r--r-- 1 bandit-user bandit-user  2048 Apr  8 22:00 stack.tar.gz\n'
+        };
+        const levelFiles = files[currentLevel] || '-rw-r--r-- 1 bandit-user bandit-user   68 Apr  8 22:00 README\n-rw-r--r-- 1 bandit-user bandit-user   82 Apr  8 22:00 mission.txt\n';
+        return { output: `total 24\ndrwxr-xr-x 2 bandit-user bandit-user 4096 Apr  8 22:00 .\ndrwxr-xr-x 3 root        root        4096 Apr  8 22:00 ..\n${levelFiles}` };
+      }
 
     case 'cat':
       if (args.length === 0) return { output: 'cat: missing operand\n' };
@@ -86,33 +93,43 @@ async function runSessionCommand(sessionId, command) {
       if (filename === 'README') {
         return { output: 'Welcome agent. Enumerate files and read clues to recover the proof token.\n' };
       }
-      if (filename === 'notes.txt') {
-        return { output: 'Hint: the proof token is not in this file. Try reading token_hint.txt.\n' };
+      
+      const flags = {
+        1: 'bandit{perm_probe_1}',
+        2: 'bandit{dotfile_hunt_2}',
+        3: 'bandit{grep_pipeline_3}',
+        4: 'bandit{archive_stack_4}',
+        5: 'bandit{strings_binary_5}',
+        6: 'bandit{cron_clue_6}',
+        7: 'bandit{port_knock_7}',
+        8: 'bandit{ssh_key_pivot_8}',
+        9: 'bandit{suid_misstep_9}',
+        10: 'bandit{symlink_trap_10}',
+        11: 'bandit{web_fuzz_11}',
+        12: 'bandit{sql_breadcrumb_12}',
+        13: 'bandit{pcap_snoop_13}',
+        14: 'bandit{git_forensics_14}',
+        15: 'bandit{jwt_tamper_15}',
+        16: 'bandit{path_traversal_16}',
+        17: 'bandit{process_memory_17}',
+        18: 'bandit{restricted_shell_18}',
+        19: 'bandit{myth_busted_19}',
+        20: 'bandit{operator_finale_20}'
+      };
+
+      const levelFiles = {
+        1: { 'permission_token.txt': flags[1] },
+        2: { '.hidden_token': flags[2], 'README': 'Find the dotfile.' },
+        3: { 'access.log': `127.0.0.1 - - [08/Apr/2026:22:00:01 +0000] "GET /index.html HTTP/1.1" 200 1234\n... many lines ...\nTOKEN=${flags[3]}\n` },
+        4: { 'stack.tar.gz': 'Binary data (mock)... use correct tools in real environment.' }
+      };
+
+      if (levelFiles[currentLevel] && levelFiles[currentLevel][filename]) {
+        return { output: `${levelFiles[currentLevel][filename]}\n` };
       }
-      if (filename === 'token_hint.txt') {
-        const flags = {
-          1: 'bandit{perm_probe_1}',
-          2: 'bandit{dotfile_hunt_2}',
-          3: 'bandit{grep_pipeline_3}',
-          4: 'bandit{archive_stack_4}',
-          5: 'bandit{strings_binary_5}',
-          6: 'bandit{cron_clue_6}',
-          7: 'bandit{port_knock_7}',
-          8: 'bandit{ssh_key_pivot_8}',
-          9: 'bandit{suid_misstep_9}',
-          10: 'bandit{symlink_trap_10}',
-          11: 'bandit{web_fuzz_11}',
-          12: 'bandit{sql_breadcrumb_12}',
-          13: 'bandit{pcap_snoop_13}',
-          14: 'bandit{git_forensics_14}',
-          15: 'bandit{jwt_tamper_15}',
-          16: 'bandit{path_traversal_16}',
-          17: 'bandit{process_memory_17}',
-          18: 'bandit{restricted_shell_18}',
-          19: 'bandit{myth_busted_19}',
-          20: 'bandit{operator_finale_20}'
-        };
-        return { output: `${flags[currentLevel] || 'bandit{mock_flag_not_found}'}\n` };
+
+      if (filename === 'mission.txt') {
+        return { output: 'Your objective is clear. Find the flag.\n' };
       }
       return { output: `cat: ${filename}: No such file or directory\n` };
 
