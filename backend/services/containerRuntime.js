@@ -90,7 +90,29 @@ async function runSessionCommand(sessionId, command) {
         return { output: 'Hint: the proof token is not in this file. Try reading token_hint.txt.\n' };
       }
       if (filename === 'token_hint.txt') {
-        return { output: `bandit{level_${currentLevel}_proof_from_runtime}\n` };
+        const flags = {
+          1: 'bandit{perm_probe_1}',
+          2: 'bandit{dotfile_hunt_2}',
+          3: 'bandit{grep_pipeline_3}',
+          4: 'bandit{archive_stack_4}',
+          5: 'bandit{strings_binary_5}',
+          6: 'bandit{cron_clue_6}',
+          7: 'bandit{port_knock_7}',
+          8: 'bandit{ssh_key_pivot_8}',
+          9: 'bandit{suid_misstep_9}',
+          10: 'bandit{symlink_trap_10}',
+          11: 'bandit{web_fuzz_11}',
+          12: 'bandit{sql_breadcrumb_12}',
+          13: 'bandit{pcap_snoop_13}',
+          14: 'bandit{git_forensics_14}',
+          15: 'bandit{jwt_tamper_15}',
+          16: 'bandit{path_traversal_16}',
+          17: 'bandit{process_memory_17}',
+          18: 'bandit{restricted_shell_18}',
+          19: 'bandit{myth_busted_19}',
+          20: 'bandit{operator_finale_20}'
+        };
+        return { output: `${flags[currentLevel] || 'bandit{mock_flag_not_found}'}\n` };
       }
       return { output: `cat: ${filename}: No such file or directory\n` };
 
