@@ -13,6 +13,9 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 
+// Trust Render's proxy for rate limiting
+app.set('trust proxy', 1);
+
 // Middleware
 const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
